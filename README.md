@@ -8,7 +8,7 @@ plugin. It never blocks a plugin and never changes configuration on its own.
 ## Quick start
 
 ```sh
-dsh plugin --profile web add "https://github.com/learner202649/deepseek-harness-security-watch.git#v0.1.0"
+dsh plugin --profile web add "https://github.com/learner202649/deepseek-harness-security-watch.git"
 ```
 
 Restart DeepSeek Harness and refresh the page: a **Security** badge appears above
@@ -125,17 +125,17 @@ assistant from calling ignore/disable on its own initiative.
 
 ## Install
 
-### One command from the GitHub URL (pinned tag)
+### One command from the GitHub URL
 
 ```sh
-dsh plugin --profile web add "https://github.com/learner202649/deepseek-harness-security-watch.git#v0.1.0"
+dsh plugin --profile web add "https://github.com/learner202649/deepseek-harness-security-watch.git"
 ```
 
 Restart DeepSeek Harness (or let HMR recompose) and refresh the page.
 
-Pin the tag (`#v0.1.0`) — or an exact commit (`#a0fc65c…`) — for a reproducible
-install. A Git install is **not** updated automatically: upgrading means
-uninstalling and adding a newer tag.
+This installs the current `main`. A Git install is **not** updated
+automatically: reinstall to pick up newer commits. Append
+`#<tag-or-commit>` only when you need to pin one exact revision.
 
 ### Desktop application
 
@@ -143,7 +143,7 @@ The Desktop app owns its `desktop` profile and refuses CLI management. Use
 **Plugins → Add plugin → Git address** with the same URL:
 
 ```
-https://github.com/learner202649/deepseek-harness-security-watch.git#v0.1.0
+https://github.com/learner202649/deepseek-harness-security-watch.git
 ```
 
 When the source is already on disk, the same dialog also accepts the absolute
