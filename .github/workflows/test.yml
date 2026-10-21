@@ -1,0 +1,23 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Rule and store tests
+        run: |
+          node test/rules.test.mjs
+          node test/store.test.mjs
+      - name: Client artifact contract
+        run: node scripts/check-client.mjs
+      - name: Self-scan stays clean
+        run: node scripts/scan-cli.mjs .
