@@ -7,16 +7,17 @@ plugin. It never blocks a plugin and never changes configuration on its own.
 
 ## Quick start
 
-CLI (requires `dsh` on `PATH`):
+In DeepSeek Harness, open **Plugins → Add plugin → Git address** and paste:
 
-```sh
-dsh plugin --profile web add "git+https://github.com/learner202649/deepseek-harness-security-watch.git"
+```
+git+https://github.com/learner202649/deepseek-harness-security-watch.git
 ```
 
-Desktop app: **Plugins → Add plugin → Git address** and paste the same
-`git+https://…` address. Restart DeepSeek Harness and refresh the page: a
-**Security** badge appears above your avatar, and enabling a plugin triggers
-one audit. See [Install](#install) for details and troubleshooting.
+Restart DeepSeek Harness and refresh the page: a **Security** badge appears
+above your avatar, and enabling a plugin triggers one audit.
+
+Terminal users can install the same package with the CLI; see
+[Install](#install) for the command, the profile caveat, and troubleshooting.
 
 ## Why this shape
 
@@ -128,7 +129,24 @@ assistant from calling ignore/disable on its own initiative.
 
 ## Install
 
-### One command (CLI)
+### In the app (recommended)
+
+Open **Plugins → Add plugin → Git address** and paste **only** the address
+(not the `dsh plugin …` command):
+
+```
+git+https://github.com/learner202649/deepseek-harness-security-watch.git
+```
+
+When the source is already on disk, the same dialog also accepts the absolute
+path to the plugin directory.
+
+> If this plugin was previously installed from a local path, uninstall it
+> first. pnpm replaces the package directory with a fresh copy, and Windows
+> refuses to rename over a live junction — the install then fails with
+> `ERR_PNPM_EPERM ... rename ... -> node_modules/dsh-security-watch`.
+
+### Terminal (CLI)
 
 Requires the `dsh` launcher on `PATH`. The Desktop application ships one at
 `<install>\resources\runtime\cli\bin\dsh.cmd` — call it by full path when `dsh`
@@ -143,29 +161,15 @@ some package managers treat a bare `https://…` URL as a remote tarball and
 fail with "not an installable package name or address". The shorter
 `github:learner202649/deepseek-harness-security-watch` form is equivalent.
 
+`--profile web` installs into the `web` profile. The Desktop app runs the
+`desktop` profile and refuses CLI management of it, so Desktop users should use
+the app dialog above.
+
 Restart DeepSeek Harness (or let HMR recompose) and refresh the page.
 
 This installs the current `main`. A Git install is **not** updated
 automatically: reinstall to pick up newer commits. Append
 `#<tag-or-commit>` only when you need to pin one exact revision.
-
-### Desktop application
-
-The Desktop app owns its `desktop` profile and refuses CLI management. Use
-**Plugins → Add plugin → Git address**, and paste **only** the address (not the
-`dsh plugin …` command):
-
-```
-git+https://github.com/learner202649/deepseek-harness-security-watch.git
-```
-
-When the source is already on disk, the same dialog also accepts the absolute
-path to the plugin directory.
-
-> If this plugin was previously installed from a local path, uninstall it
-> first. pnpm replaces the package directory with a fresh copy, and Windows
-> refuses to rename over a live junction — the install then fails with
-> `ERR_PNPM_EPERM ... rename ... -> node_modules/dsh-security-watch`.
 
 ### Install troubleshooting
 
