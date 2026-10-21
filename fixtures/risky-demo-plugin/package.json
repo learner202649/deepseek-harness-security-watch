@@ -1,0 +1,18 @@
+{
+  "name": "dsh-risky-demo",
+  "version": "0.0.1",
+  "description": "Scanner fixture for dsh-security-watch. Registration only: apply() does nothing and the suspicious file is never imported.",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "license": "MIT"
+}

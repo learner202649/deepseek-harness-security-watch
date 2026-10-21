@@ -1,0 +1,6 @@
+# dsh-safe-demo
+#
+# One inert row: the host half logs a line and owns one lifecycle effect.
+- insert:
+    - id: safe-demo
+      name: 'dsh-safe-demo'

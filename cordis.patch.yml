@@ -1,0 +1,21 @@
+# dsh-security-watch — profile bundle patch.
+#
+# Bundle patches compose over an EMPTY entry list, so this is an `insert`.
+# The row mounts the host half, which registers the watch tools, the prompt
+# guidance section, and the `internal/plugin` observer.
+- insert:
+    - id: security-watch
+      name: 'dsh-security-watch'
+      config:
+        # Scan only third-party packages by default. Official @deepseek-ai/*
+        # bundles are shipped with the installation and are not the threat
+        # model here.
+        scanOfficial: false
+        # Hard caps: keep the mount-time scan bounded and out of the way.
+        maxFiles: 2000
+        maxFileBytes: 2097152
+        maxTotalBytes: 33554432
+        # Severity that counts as "needs a human decision".
+        alertAt: medium
+        # Append a human-readable line to the host log on every new risk.
+        logRisks: true

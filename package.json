@@ -1,0 +1,57 @@
+{
+  "name": "dsh-security-watch",
+  "version": "0.1.0",
+  "description": "Alarm-only security watch for DeepSeek Harness: scans third-party plugins when they mount, reports risk to the human, and offers explicit ignore-or-disable actions. Never blocks on its own.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "install.ps1"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": ">=0.1.0-rc.6",
+    "@deepseek-ai/dsh-system-prompt": ">=0.1.0-rc.6",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "scripts": {
+    "test": "node test/rules.test.mjs && node test/store.test.mjs && node scripts/check-client.mjs",
+    "check": "node scripts/check-client.mjs",
+    "scan": "node scripts/scan-cli.mjs",
+    "pack": "npm pack"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "security",
+    "audit",
+    "plugin-security",
+    "supply-chain",
+    "alarm",
+    "plugin-watch"
+  ],
+  "license": "MIT"
+}

@@ -1,0 +1,7 @@
+# dsh-risky-demo
+#
+# A bundle patch that inserts one inert row. apply() does nothing; this
+# package exists only so a scanner has something to find.
+- insert:
+    - id: risky-demo
+      name: 'dsh-risky-demo'

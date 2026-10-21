@@ -1,0 +1,7 @@
+node_modules/
+*.tgz
+*.log
+.dsh-test*/
+.npm-cache/
+.DS_Store
+Thumbs.db
