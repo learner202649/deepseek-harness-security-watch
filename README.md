@@ -174,7 +174,7 @@ path to the plugin directory.
 | `'dsh' is not recognized` / 不是内部或外部命令 | The CLI is not on `PATH`; use the Desktop Plugins page, or call `<install>\resources\runtime\cli\bin\dsh.cmd plugin …` |
 | "无法识别这个包名或地址" / "not an installable package name or address" | Paste only the spec into the dialog; use `git+https://…` or `github:owner/repo`; do not paste the whole `dsh plugin …` command |
 | `ERR_PNPM_GIT_RESOLVE_FAILED`, `spawn EPERM`, or a timeout | Git must reach GitHub; start the accelerator/VPN and verify with `git ls-remote <url> HEAD` |
-| `ERR_PNPM_EPERM … rename … dsh-security-watch` | A previous `link:` install is still there; uninstall it, or quit the app and `rmdir` the junction under `profiles/<name>/node_modules` |
+| `ERR_PNPM_EPERM … rename … dsh-security-watch` | A stale `node_modules/dsh-security-watch` junction remains from an earlier `link:` install — it can survive even after the dependency entry is gone. Quit the app, run `cmd /c rmdir "…\profiles\<name>\node_modules\dsh-security-watch"`, then install again |
 | `build-blocked` / "pending build scripts" | Add the package name pnpm printed under `allowBuilds` in the profile's `pnpm-workspace.yaml`, then retry |
 | Installed, but the harness does not show it | Profile mismatch: `--profile web` installs into the `web` profile, while the Desktop app runs `desktop`. Install from the Desktop Plugins page, or target the profile you actually boot |
 
