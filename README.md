@@ -5,6 +5,16 @@ packages **when they mount**, raises a risk report, and offers the human two
 explicit actions: ignore the risk (bound to the exact artifact) or disable the
 plugin. It never blocks a plugin and never changes configuration on its own.
 
+## Quick start
+
+```sh
+dsh plugin --profile web add "https://github.com/learner202649/deepseek-harness-security-watch.git#v0.1.0"
+```
+
+Restart DeepSeek Harness and refresh the page: a **Security** badge appears above
+your avatar, and enabling a plugin triggers one audit. See
+[Install](#install) for the Desktop app and other methods.
+
 ## Why this shape
 
 The three plugins we audited split along a useful line:
@@ -110,27 +120,53 @@ explicitly forbids calling them on the assistant's own initiative.
 
 ## Install
 
-Three ways, pick one:
+### One command from the GitHub URL (pinned tag)
 
 ```sh
-# 1. from this checkout (absolute path matters: the plugin manager forwards the
-#    argument to pnpm with the profile directory as cwd)
+dsh plugin --profile web add "https://github.com/learner202649/deepseek-harness-security-watch.git#v0.1.0"
+```
+
+Restart DeepSeek Harness (or let HMR recompose) and refresh the page.
+
+Pin the tag (`#v0.1.0`) — or an exact commit (`#a0fc65c…`) — for a reproducible
+install. A Git install is **not** updated automatically: upgrading means
+uninstalling and adding a newer tag.
+
+### Desktop application
+
+The Desktop app owns its `desktop` profile and refuses CLI management. Use
+**Plugins → Add plugin → Git address** with the same URL:
+
+```
+https://github.com/learner202649/deepseek-harness-security-watch.git#v0.1.0
+```
+
+When the source is already on disk, the same dialog also accepts the absolute
+path to the plugin directory.
+
+> If this plugin was previously installed from a local path, uninstall it
+> first. pnpm replaces the package directory with a fresh copy, and Windows
+> refuses to rename over a live junction — the install then fails with
+> `ERR_PNPM_EPERM ... rename ... -> node_modules/dsh-security-watch`.
+
+### Other ways
+
+```sh
+# from a local checkout (absolute path matters: the plugin manager forwards the
+# argument to pnpm with the profile directory as cwd)
 dsh plugin --profile web add "C:\path\to\dsh-security-watch"
 
-# 2. from a packed tarball
+# from a packed tarball
 npm pack                # → dsh-security-watch-0.1.0.tgz
 dsh plugin --profile web add "C:\path\to\dsh-security-watch-0.1.0.tgz"
 
-# 3. Windows helper (resolves this directory to an absolute path)
+# Windows helper (resolves this directory to an absolute path)
 powershell -ExecutionPolicy Bypass -File .\install.ps1 -Profile web
 ```
 
-The Desktop application owns its `desktop` profile and refuses CLI management.
-Install there from the Plugins page: **Add plugin** → paste the absolute path.
-
 The package is a bundle (`dsh.bundle.patch`), so adding it selects the layer.
-Restart or let HMR recompose, then refresh the page. State and the report live
-in `$DSH_HOME/security-watch/` (`state.json`, `report.md`).
+State and the report live in `$DSH_HOME/security-watch/`
+(`state.json`, `report.md`).
 
 To try the scanner without installing anything:
 
