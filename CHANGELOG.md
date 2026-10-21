@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1 — 2026-10-21
+
+Documentation only.
+
+- Add a one-command install from the GitHub URL:
+  `dsh plugin --profile web add "https://github.com/learner202649/deepseek-harness-security-watch.git#v0.1.0"`.
+- Document the Desktop-app path and the `ERR_PNPM_EPERM` case caused by a
+  previous `link:` install of the same package.
+
 ## 0.1.0 — 2026-10-21
 
 Initial release.
