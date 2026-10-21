@@ -71,7 +71,7 @@ can be made and re-checked later.
 | `R07-obfuscation` | medium | Obfuscation primitives: `atob`, `Buffer.from(…,'base64')`, `String.fromCharCode` |
 | `R08-persistence` | high | Writes to login/autostart files: `.bashrc`, `.zshrc`, `.bash_profile`, `.profile`, `LaunchAgents`, `autostart` |
 | `R09-config-tamper` | medium | Writes to harness configuration: `cordis.patch.yml`, `cordis.yml` |
-| `R10-prompt-injection` | medium | Instruction-override phrases in non-code text (`ignore previous instructions`, `无需确认`, `不要询问`, …) |
+| `R10-prompt-injection` | medium | Instruction-override phrases in non-code text: English "disregard earlier instructions" variants and their Chinese equivalents |
 | `R11-home-write` | medium | Writes into the home directory (`homedir()`, `os.userInfo()`, `$HOME`) |
 | `R12-remote-code` | high | Fetch → write → `import`/`require`/`eval` (downloaded code executed) |
 | `R13-client-half` | low | Ships a browser half (`dsh.client`) — runs inside the GUI page |
@@ -110,13 +110,18 @@ prompt-injection risk.
 
 ## Decisions
 
-| Action | Tool | Effect |
+| Action | Tool / UI | Effect |
 |---|---|---|
-| Ignore | `security_watch_ignore` | Records the reason + artifact hash. A changed artifact is flagged again. |
-| Disable | `security_watch_disable` | Calls `pluginManager.setBundleEnabled(name, false)` when available; records either way. |
+| Trust (false positive) | Popup **Trust as false positive**, or `security_watch_ignore` | Records the reason + artifact hash; the badge stops counting it. A changed artifact is audited again. |
+| Disable | Popup **Disable this plugin**, or `security_watch_disable` | Calls `pluginManager.setBundleEnabled(name, false)` when available; records the plugin as resolved. |
+| Forget | `security_watch_forget` | Deletes one ledger record (ad-hoc scans, decided items). |
 
-Both are model-callable but must be requested by the human; the prompt section
-explicitly forbids calling them on the assistant's own initiative.
+The trust decision is bound to the scanned artifact hash, so confirming a false
+positive after an LLM deep audit keeps the badge green for that exact version —
+but a new version or a changed tarball is flagged again.
+
+All three are user decisions. The prompt section explicitly forbids the
+assistant from calling ignore/disable on its own initiative.
 
 ## Install
 
@@ -182,8 +187,9 @@ avatar) and an overlay card:
 - **Badge**: pending count; green when nothing needs a decision.
 - **Auditing**: shown while an enable-triggered scan runs.
 - **Risk**: severity summary, top findings, a suggested
-  `security_watch_disable({plugin:"…"})` line, a two-step disable button, and
-  "Deep audit in a new session".
+  `security_watch_disable({plugin:"…"})` line, a two-step disable button,
+  "Trust as false positive" (hash-bound, for a deep audit that cleared the
+  finding), and "Deep audit in a new session".
 - **Clean**: "no known risk patterns" with the same deep-audit option.
 - **Skipped** (official `@deepseek-ai/*`): explains the static skip and offers
   the LLM deep audit.

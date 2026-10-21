@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.2 — 2026-10-21
+
+- Add a **Trust as false positive** action to the popup for risk/attention
+  findings. It calls the new `POST /api/security-watch/ignore` route, records
+  the reason and the artifact hash, and removes the item from the badge. A new
+  version or a changed artifact is audited again.
+- Backing route lets the Web UI record a decision without going through the
+  model; the existing `security_watch_ignore` tool still works for
+  conversation-driven decisions.
+
 ## 0.1.1 — 2026-10-21
 
 Documentation only.
