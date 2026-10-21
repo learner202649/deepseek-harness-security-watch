@@ -43,6 +43,48 @@ This plugin takes the missing shape:
 - On a new risk: one `logger.warn`, one `security-watch/risk` event, and an
   updated `report.md`.
 
+## What the static audit covers
+
+The deterministic scan is a set of capability-shaped rules over the plugin's
+source text. Each hit carries a rule id, severity, file and line, so a decision
+can be made and re-checked later.
+
+| Rule | Severity | Detects |
+|---|---|---|
+| `R00-install-scripts` | high | Lifecycle scripts in `package.json`: `preinstall`, `install`, `postinstall`, `prepare` |
+| `R01-exec` | high | Process spawning: `require/import('child_process')`, `execSync`, `spawnSync`, `execFileSync`, `spawn('…')`, `exec('…')` |
+| `R02-dynamic-exec` | high | Runtime code evaluation: `eval(`, `new Function(`, `vm.run*` |
+| `R03-network` | medium | Outbound calls: `fetch('http…')`, `http(s).request`, `net.connect`, `new WebSocket` |
+| `R04-remote-payload` | high | Fetch combined with `eval`/`new Function`/`atob` in one file (staged payload) |
+| `R05-sensitive-paths` | high | Credential material reached through fs/path calls: `~/.ssh`, `id_rsa`, `id_ed25519`, `~/.aws`, `~/.credentials`, `~/.npmrc`, `~/.netrc`, `~/.pgpass`, `_authToken` |
+| `R06-env-secrets` | medium | API-key-shaped env reads: `process.env.*KEY/TOKEN/SECRET/PASSWORD/CREDENTIAL*` |
+| `R07-obfuscation` | medium | Obfuscation primitives: `atob`, `Buffer.from(…,'base64')`, `String.fromCharCode` |
+| `R08-persistence` | high | Writes to login/autostart files: `.bashrc`, `.zshrc`, `.bash_profile`, `.profile`, `LaunchAgents`, `autostart` |
+| `R09-config-tamper` | medium | Writes to harness configuration: `cordis.patch.yml`, `cordis.yml` |
+| `R10-prompt-injection` | medium | Instruction-override phrases in non-code text (`ignore previous instructions`, `无需确认`, `不要询问`, …) |
+| `R11-home-write` | medium | Writes into the home directory (`homedir()`, `os.userInfo()`, `$HOME`) |
+| `R12-remote-code` | high | Fetch → write → `import`/`require`/`eval` (downloaded code executed) |
+| `R13-client-half` | low | Ships a browser half (`dsh.client`) — runs inside the GUI page |
+| `R14-name-mismatch` | medium | Loader entry name differs from the package manifest name |
+
+Scanning behaviour:
+
+- Walks the package except `node_modules` and VCS metadata. Build output such
+  as `dist/`, `build/`, `out/` **is** scanned, because for published packages
+  that is the shipped code.
+- Bounded: 2000 files, 2 MiB per file, 32 MiB total. A cap sets `truncated`
+  rather than reporting the package clean.
+- Findings under `test/`, `tests/`, `__tests__/`, `fixtures/`, `examples/` are
+  downgraded to `low`, so fixtures cannot escalate a verdict.
+- Rules that need context bind the call to the target: `R05`, `R08`, `R09`,
+  `R11` require an fs/path call near the sensitive path or filename, which cuts
+  most comment/string noise.
+- A verdict is `risk` (any high), `attention` (any medium), or `ok`.
+
+The static audit answers "does this package have the **capability** to do X?".
+It does not prove intent, data flow, or runtime conditions — see
+[Known limits](#known-limits) for what needs the optional LLM deep audit.
+
 ## Deep audit (optional)
 
 The default scan is deterministic and model-free. For a closer look,

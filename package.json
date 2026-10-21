@@ -4,6 +4,14 @@
   "description": "Alarm-only security watch for DeepSeek Harness: scans third-party plugins when they mount, reports risk to the human, and offers explicit ignore-or-disable actions. Never blocks on its own.",
   "type": "module",
   "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/learner202649/deepseek-harness-security-watch.git"
+  },
+  "homepage": "https://github.com/learner202649/deepseek-harness-security-watch#readme",
+  "bugs": {
+    "url": "https://github.com/learner202649/deepseek-harness-security-watch/issues"
+  },
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
