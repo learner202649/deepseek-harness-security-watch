@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.4 — 2026-10-22
+
+- Fix "目录未找到" (unresolved) for packages that define an `exports` map
+  without `./package.json`. `require.resolve('<name>/package.json')` throws
+  `ERR_PACKAGE_PATH_NOT_EXPORTED` for such packages (@tencent-connect/dsh-qqbot
+  exports only `.` and `./client`), so the loader entry never resolved.
+  Resolution now checks the installed `node_modules` layout first and only
+  falls back to Node resolution, then walks up from the entry point.
+- Add `test/resolve.test.mjs` covering the exports-hidden case.
+
 ## 0.1.3 — 2026-10-22
 
 - Fix scans stuck at "scanning" forever. A scan queued for a bundle whose
