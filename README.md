@@ -221,6 +221,10 @@ avatar) and an overlay card:
 - **Clean**: "no known risk patterns" with the same deep-audit option.
 - **Skipped** (official `@deepseek-ai/*`): explains the static skip and offers
   the LLM deep audit.
+- **Skipped for other reasons**: an unresolvable install (retried, then
+  reported) and a 5-minute watchdog both end as a skipped result with the
+  reason, instead of leaving the popup at "scanning" forever. Toggle the
+  plugin off and on to retry.
 
 Dismissal is remembered per mount event, so a closed popup does not reappear;
 the badge stays as the standing entry point.

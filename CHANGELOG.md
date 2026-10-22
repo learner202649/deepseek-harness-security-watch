@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3 — 2026-10-22
+
+- Fix scans stuck at "scanning" forever. A scan queued for a bundle whose
+  directory was not resolvable yet (install still finishing) left the live
+  entry `queued` indefinitely, and the popup only pruned finished entries.
+  - Unresolvable scans are retried briefly, then settled as a skipped result.
+  - A 5-minute watchdog converts any in-flight entry into a skipped result.
+  - The popup now explains unresolved/watchdog skips instead of spinning.
+
 ## 0.1.2 — 2026-10-21
 
 - Add a **Trust as false positive** action to the popup for risk/attention

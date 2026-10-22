@@ -1,6 +1,6 @@
 {
   "name": "dsh-security-watch",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Alarm-only security watch for DeepSeek Harness: scans third-party plugins when they mount, reports risk to the human, and offers explicit ignore-or-disable actions. Never blocks on its own.",
   "type": "module",
   "main": "lib/index.js",
