@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.1.5 — 2026-10-22
+
+Edge cases found in a review of the scanner, store and UI. Behaviour that could
+hide a problem is now explicit; nothing here changes the alarm-only contract.
+
+- **Incomplete scans are never clean.** A scan that hit a cap, could not read a
+  file, or found a symlink escaping the package is `incomplete` and at least
+  `attention`. The popup, `report.md` and the badge say so.
+- **The artifact hash now covers every file**, including binaries and ignored
+  extensions (small binaries by content, larger ones by name+size), so swapping
+  a payload invalidates a recorded ignore. Existing ignores re-flag once.
+- **UTF-16 text (BOM) is decoded**, so PowerShell-style scripts are scanned by
+  the text rules instead of becoming mojibake. More text extensions
+  (`.bat`, `.cmd`, `.psm1`, `.toml`, `.env`, `.txt`, lock files, …) are scanned.
+- **Symlinks are never followed**; links resolving outside the package are
+  reported as `R15-symlink-escape`, and unreadable files as
+  `R16-scan-incomplete`.
+- **Depth cap (40)** so pathological trees cannot exhaust the stack.
+- **State is per profile** under `$DSH_HOME/security-watch/<profile>/`; a
+  pre-0.1.5 shared state is imported by the first profile that starts (marker
+  file records the claim) and never re-imported by another profile. Saves are
+  atomic and keep one `.bak`; a corrupt main file falls back to it.
+- **New rules**: `R17-browser-credentials` (high), `R18-encoded-command`
+  (medium), `R19-watcher-tamper` (medium).
+- **Badge** shows a yellow `!` when a scan could not run or finish.
+
 ## 0.1.4 — 2026-10-22
 
 - Fix "目录未找到" (unresolved) for packages that define an `exports` map

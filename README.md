@@ -49,11 +49,14 @@ This plugin takes the missing shape:
   seconds, on a live mount.
 - Official `@deepseek-ai/*` packages are skipped by the static rules, but a
   newly enabled one still produces a popup that offers the LLM deep audit.
-- Scans are bounded: 2000 files, 2 MiB per file, 32 MiB total, `node_modules`
-  skipped. Hitting a cap sets `truncated`, never "clean".
+- Scans are bounded: 2000 files, 2 MiB per file, 32 MiB total, depth 40,
+  `node_modules` skipped. Hitting a cap, a symlink pointing outside the package,
+  or an unreadable file marks the scan `incomplete` — an incomplete scan is
+  never "clean".
 - Findings are capability-shaped rules (exec, dynamic exec, network, staged
-  payload, credential paths, env secrets, obfuscation, persistence, config
-  tamper, prompt injection, home writes, remote code).
+  payload, credential paths, browser profiles, env secrets, obfuscation,
+  persistence, config tamper, prompt injection, home writes, remote code,
+  watcher tampering).
 - On a new risk: one `logger.warn`, one `security-watch/risk` event, and an
   updated `report.md`.
 
@@ -80,14 +83,29 @@ can be made and re-checked later.
 | `R12-remote-code` | high | Fetch → write → `import`/`require`/`eval` (downloaded code executed) |
 | `R13-client-half` | low | Ships a browser half (`dsh.client`) — runs inside the GUI page |
 | `R14-name-mismatch` | medium | Loader entry name differs from the package manifest name |
+| `R15-symlink-escape` | medium | Contains a symlink pointing outside the package (a bundled path to host files) |
+| `R16-scan-incomplete` | low | Some files could not be read, so the scan is incomplete |
+| `R17-browser-credentials` | high | Reads browser profile data: `Login Data`, `Cookies`, `Local State`, `key4.db`, `logins.json`, Chrome/Edge/Firefox profile paths |
+| `R18-encoded-command` | medium | Launches an encoded or hidden shell: `powershell -enc/-EncodedCommand`, `cmd /c … hidden`, `CreateNoWindow` |
+| `R19-watcher-tamper` | medium | Touches `security-watch` state or its decisions (`security_watch_ignore/disable`, `state.json` paths) |
 
 Scanning behaviour:
 
 - Walks the package except `node_modules` and VCS metadata. Build output such
   as `dist/`, `build/`, `out/` **is** scanned, because for published packages
   that is the shipped code.
-- Bounded: 2000 files, 2 MiB per file, 32 MiB total. A cap sets `truncated`
-  rather than reporting the package clean.
+- Bounded: 2000 files, 2 MiB per file, 32 MiB total, depth 40. A cap sets
+  `truncated`/`incomplete` and forces at least `attention`, rather than
+  reporting the package clean.
+- UTF-16 text (PowerShell often writes it) is decoded when a BOM is present, so
+  text rules still apply.
+- The artifact hash covers every file the scanner sees: text files and small
+  binary files by content, larger binaries by name and size. A swapped binary
+  therefore invalidates the recorded ignore.
+- Symlinks are never followed; a link that resolves outside the package is
+  reported as `R15`.
+- A self-scan (this package) skips the self-referential rules `R17`–`R19`,
+  whose patterns live in this package's own source.
 - Findings under `test/`, `tests/`, `__tests__/`, `fixtures/`, `examples/` are
   downgraded to `low`, so fixtures cannot escalate a verdict.
 - Rules that need context bind the call to the target: `R05`, `R08`, `R09`,
@@ -198,8 +216,13 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -Profile web
 ```
 
 The package is a bundle (`dsh.bundle.patch`), so adding it selects the layer.
-State and the report live in `$DSH_HOME/security-watch/`
-(`state.json`, `report.md`).
+State and the report live under `$DSH_HOME/security-watch/<profile>/`
+(`state.json`, `report.md`) — one namespace per profile, so a CLI `web`-profile
+scan cannot mark desktop plugins disabled or leak decisions across profiles.
+A pre-0.1.5 shared `state.json` is imported once by the first profile that
+starts (a marker file records the claim) and is never re-imported by another
+profile. Saves are atomic and keep one `.bak` copy, which `loadState` falls
+back to when the main file is corrupt.
 
 To try the scanner without installing anything:
 
@@ -212,7 +235,8 @@ node scripts/scan-cli.mjs <dir-or-package-name>
 The browser half registers `sidebar.footer.action` (the badge above your
 avatar) and an overlay card:
 
-- **Badge**: pending count; green when nothing needs a decision.
+- **Badge**: pending count; a red dot while decisions are pending, a yellow `!`
+  when a scan could not run (unresolved/watchdog), green otherwise.
 - **Auditing**: shown while an enable-triggered scan runs.
 - **Risk**: severity summary, top findings, a suggested
   `security_watch_disable({plugin:"…"})` line, a two-step disable button,
@@ -231,8 +255,10 @@ the badge stays as the standing entry point.
 
 ## Verified
 
-- `node test/rules.test.mjs` — 12/12; `node test/store.test.mjs` — 4/4;
-  client artifact contract check passes.
+- `node test/rules.test.mjs` — 17/17; `node test/store.test.mjs` — 6/6;
+  `node test/resolve.test.mjs` — 6/6; `node test/scan.test.mjs` — 4 tests
+  (one is skipped where the OS forbids creating symlinks); client artifact
+  contract check passes.
 - Self-scan: `verdict: ok` (only `low` findings, all in test fixtures).
 - Load test: throwaway `web` profile, plugin installed by path, server booted
   with `--no-open --port 0` — zero activation warnings; a third-party fixture

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -88,6 +88,65 @@ test('disabling resolves a recorded risk until re-enabled', () => {
   assert.equal(store.pendingRisks(state).length, 0);
   assert.equal(store.clearDisabled(state, 'p'), true);
   assert.equal(store.pendingRisks(state).length, 1);
+});
+
+test('state is namespaced per profile and the legacy state is claimed once', () => {
+  const scan = (name, hash, verdict) => ({
+    version: '1.0.0',
+    root: `/tmp/${name}`,
+    hash,
+    verdict,
+    counts: { high: verdict === 'risk' ? 1 : 0, medium: 0, low: 0 },
+    capabilities: verdict === 'risk' ? ['R01-exec'] : [],
+    findings: [],
+    fileCount: 1,
+    bytes: 1,
+    truncated: false,
+  });
+
+  store.configureStore(undefined);
+  const legacy = store.emptyState();
+  store.recordScan(legacy, 'legacy-plugin', scan('legacy', 'h-legacy', 'risk'));
+  store.saveState(legacy);
+
+  store.configureStore(join(home, 'profiles', 'alpha'));
+  const alpha = store.loadState();
+  assert.ok(alpha.plugins['legacy-plugin'], 'the first profile claims the legacy state');
+  store.recordScan(alpha, 'alpha-plugin', scan('alpha', 'h-alpha', 'risk'));
+  store.saveState(alpha);
+
+  store.configureStore(join(home, 'profiles', 'beta'));
+  const beta = store.loadState();
+  assert.equal(beta.plugins['legacy-plugin'], undefined, 'later profiles do not inherit another profile state');
+
+  store.configureStore(join(home, 'profiles', 'alpha'));
+  assert.ok(store.loadState().plugins['alpha-plugin']);
+  assert.ok(existsSync(join(home, 'security-watch', 'alpha', 'state.json')));
+  store.configureStore(undefined);
+});
+
+test('a corrupt state file falls back to the last good backup', () => {
+  store.configureStore(join(home, 'profiles', 'gamma'));
+  const state = store.emptyState();
+  const result = {
+    version: '1.0.0',
+    root: '/tmp/gamma',
+    hash: 'h-gamma',
+    verdict: 'risk',
+    counts: { high: 1, medium: 0, low: 0 },
+    capabilities: ['R01-exec'],
+    findings: [],
+    fileCount: 1,
+    bytes: 1,
+    truncated: false,
+  };
+  store.recordScan(state, 'gamma-plugin', result);
+  store.saveState(state);
+  store.saveState(state); // second save creates state.json.bak
+  writeFileSync(join(home, 'security-watch', 'gamma', 'state.json'), '{ not json');
+  const recovered = store.loadState();
+  assert.equal(recovered.plugins['gamma-plugin'].verdict, 'risk');
+  store.configureStore(undefined);
 });
 
 test.after(() => {

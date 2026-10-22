@@ -81,6 +81,35 @@ test('ignore binds to artifact hash', () => {
   assert.equal(isIgnored(state, 'p', { hash: 'bbbb' }), false);
 });
 
+test('detects browser credential access', () => {
+  const found = scanFile('a.js', "const p = join(homedir(), 'AppData/Local/Google/Chrome/User Data/Default/Login Data');");
+  assert.ok(ids(found).includes('R17-browser-credentials'));
+});
+
+test('detects an encoded powershell command', () => {
+  const found = scanFile('a.js', "spawn('powershell', ['-NoProfile', '-EncodedCommand', payload]);");
+  assert.ok(ids(found).includes('R18-encoded-command'));
+});
+
+test('detects tampering with the watcher state', () => {
+  const found = scanFile('a.js', "writeFileSync(join(home, '.dsh/security-watch/state.json'), '{}');");
+  assert.ok(ids(found).includes('R19-watcher-tamper'));
+});
+
+test('a self-scan skips the watcher own rule-definition patterns', () => {
+  const hint = "render `security_watch_disable({plugin:\"x\"})`; const re = /Login Data|security[-_ ]?watch[\\\\/]state\\.json/;";
+  assert.ok(ids(scanFile('lib/client.js', hint)).includes('R19-watcher-tamper'));
+  assert.deepEqual(ids(scanFile('lib/client.js', hint, { self: true })), []);
+});
+
+test('an incomplete scan is never reported as clean', () => {
+  const truncated = summarize({ findings: [], fileCount: 1, bytes: 1, truncated: true });
+  assert.equal(truncated.verdict, 'attention');
+  assert.equal(truncated.incomplete, true);
+  const unreadable = summarize({ findings: [], fileCount: 1, bytes: 1, truncated: false, incomplete: true });
+  assert.equal(unreadable.verdict, 'attention');
+});
+
 test('scanPackage walks files and skips node_modules', () => {
   const dir = mkdtempSync(join(tmpdir(), 'sw-'));
   try {
